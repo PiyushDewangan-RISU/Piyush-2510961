@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Card Game</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background: #f4f6f8;
+            text-align: center;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 100px);
+            gap: 15px;
+            justify-content: center;
+        }
+
+        .card {
+            width: 100px;
+            height: 100px;
+            background: #1e88e5;
+            color: white;
+            font-size: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border-radius: 8px;
+            user-select: none;
+            transition: transform 0.3s, background 0.3s;
+        }
+
+        .card.flipped {
+            background: #43a047;
+            transform: rotateY(180deg);
+        }
+
+        .card.matched {
+            background: #9e9e9e;
+            cursor: default;
+        }
+
+        button {
+            margin-top: 15px;
+            padding: 8px 16px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        @media (max-width: 500px) {
+            .game-board {
+                grid-template-columns: repeat(4, 70px);
+            }
+            .card {
+                width: 70px;
+                height: 70px;
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>🧠 Memory Card Game</h1>
+
+    <div class="stats">
+        Moves: <span id="moves">0</span> |
+        Matched Pairs: <span id="matches">0</span>
+    </div>
+
+    <div class="game-board" id="gameBoard"></div>
+
+    <button onclick="resetGame()">Restart Game</button>
+
+    <script>
+        const symbols = ["🍎","🍌","🍇","🍓","🍎","🍌","🍇","🍓"];
+        let shuffledCards = [];
+        let firstCard = null;
+        let secondCard = null;
+        let moves = 0;
+        let matches = 0;
+        let lockBoard = false;
+
+        const board = document.getElementById("gameBoard");
+        const movesText = document.getElementById("moves");
+        const matchesText = document.getElementById("matches");
+
+        function shuffleCards() {
+            shuffledCards = symbols.sort(() => 0.5 - Math.random());
+        }
+
+        function createBoard() {
+            board.innerHTML = "";
+            shuffleCards();
+
+            shuffledCards.forEach(symbol => {
+                const card = document.createElement("div");
+                card.classList.add("card");
+                card.dataset.value = symbol;
+                card.innerText = "?";
+                card.addEventListener("click", flipCard);
+                board.appendChild(card);
+            });
+        }
+
+        function flipCard() {
+            if (lockBoard || this.classList.contains("matched")) return;
+            if (this === firstCard) return;
+
+            this.classList.add("flipped");
+            this.innerText = this.dataset.value;
+
+            if (!firstCard) {
+                firstCard = this;
+                return;
+            }
+
+            secondCard = this;
+            moves++;
+            movesText.innerText = moves;
+
+            checkMatch();
+        }
+
+        function checkMatch() {
+            if (firstCard.dataset.value === secondCard.dataset.value) {
+                firstCard.classList.add("matched");
+                secondCard.classList.add("matched");
+                matches++;
+                matchesText.innerText = matches;
+                resetTurn();
+            } else {
+                lockBoard = true;
+                setTimeout(() => {
+                    firstCard.classList.remove("flipped");
+                    secondCard.classList.remove("flipped");
+                    firstCard.innerText = "?";
+                    secondCard.innerText = "?";
+                    resetTurn();
+                }, 800);
+            }
+        }
+
+        function resetTurn() {
+            firstCard = null;
+            secondCard = null;
+            lockBoard = false;
+        }
+
+        function resetGame() {
+            moves = 0;
+            matches = 0;
+            movesText.innerText = moves;
+            matchesText.innerText = matches;
+            resetTurn();
+            createBoard();
+        }
+
+        createBoard();
+    </script>
+
+</body>
+</html>
